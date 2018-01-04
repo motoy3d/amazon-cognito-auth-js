@@ -191,14 +191,13 @@
   // Initialize a cognito auth object.
     function initCognitoSDK() {
         var authData = {
-            ClientId : '7o7furp5fbj0p1nglngun67djm', // Your client id here
-            AppWebDomain : 'motoikataoka.auth.ap-northeast-1.amazoncognito.com',
-            TokenScopesArray : ['profile', 'email', 'openid', 'aws.cognito.signin.user.admin', 'phone'],
-            RedirectUriSignIn : 'https://s3-ap-northeast-1.amazonaws.com/webhosting-motoi/index.html',
-            RedirectUriSignOut : 'https://s3-ap-northeast-1.amazonaws.com/webhosting-motoi/index.html?signout=1',
-            //IdentityProvider : '<TODO: your identity provider you want to specify here>',
-                    UserPoolId : 'ap-northeast-1_8g798FSlW',
-                    AdvancedSecurityDataCollectionFlag : false
+                ClientId : 'gcc5h6949afcflhtgo9vdaa73', // Your client id here
+                AppWebDomain : 'ds-alexa.auth.ap-northeast-1.amazoncognito.com',
+                TokenScopesArray : ['profile', 'email', 'openid', 'aws.cognito.signin.user.admin', 'phone'],
+                RedirectUriSignIn : 'http://localhost/amazon-cognito-auth-js/sample/index2.html',
+                RedirectUriSignOut : 'http://localhost/amazon-cognito-auth-js/sample/index2.html?signout=1',
+                //IdentityProvider : 'ap-northeast-1:f15f010c-6e31-4d16-84df-c41cbaf90ea8',
+                UserPoolId : 'ap-northeast-1_O1G9elThK'
         };
         var auth = new AWSCognito.CognitoIdentityServiceProvider.CognitoAuth(authData);
         auth.userhandler = {

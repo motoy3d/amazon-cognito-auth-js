@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <title>Cognito Auth JS SDK サンプル</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="stylesheets/styleSheetStart.css">
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="../dist/aws-cognito-sdk.js"></script>
+    <script src="../dist/amazon-cognito-auth.min.js"></script>
+</head>
+<body  onload="onLoad()">
+    <h1>Amazon Cognito Auth Demo</h1>
+    <div>
+      <p id="statusNotAuth" title="Status">ログインしてください。</p>
+      <p id="statusAuth" title="Status">ログイン済みです。</p>
+      <a href="index.html">index.html</a>
+    </div>
+    <div class="tabsWell">
+        <div id="startButtons">
+            <div class="button">
+                <a class="nav-tabs" id="signInButton" href="javascript:void(0)" title="Sign in">ログイン</a>
+            </div>
+        </div>
+        <div class="tab-content">
+            <div class="tab-pane" id="userdetails">
+                <p class="text-icon" title="Minimize" id="tabIcon" onclick="toggleTab('usertab');">_</p>
+                <br>
+                <h2 id="usertabtitle">Tokens</h2>
+                <div class="user-form" id="usertab">
+                    <p id="idtoken"> ... </p>
+                    <p id="acctoken"> ... </p>
+                    <p id="reftoken"> ... </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+    // Operations when the web page is loaded.
+    function onLoad() {
+        var i, items, tabs;
+        items = document.getElementsByClassName("tab-pane");
+        for (i = 0; i < items.length; i++) {
+            items[i].style.display = 'none';
+        }
+        document.getElementById("statusNotAuth").style.display = 'block';
+        document.getElementById("statusAuth").style.display = 'none';
+        // Initiatlize CognitoAuth object
+        var auth = initCognitoSDK();
+        document.getElementById("signInButton").addEventListener("click", function() {
+            userButton(auth);
+        });
+        var curUrl = window.location.href;
+        auth.parseCognitoWebResponse(curUrl);
+    }
+
+    // タブを閉じる
+    function closeTab(tabName) {
+      document.getElementById(tabName).style.display = 'none';
+    }
+
+    // タブを開く
+    function openTab(tabName) {
+        document.getElementById(tabName).style.display = 'block';
+    }
+
+    // タブのトグル
+    function toggleTab(tabName) {
+        if (document.getElementById("usertab").style.display == 'none') {
+            document.getElementById("usertab").style.display = 'block';
+            document.getElementById("tabIcon").innerHTML = '_';
+        } else {
+            document.getElementById("usertab").style.display = 'none';
+            document.getElementById("tabIcon").innerHTML = '+';
+        }
+    }
+
+    // ログインまたはログアウトボタン押下時の処理
+    function userButton(auth) {
+        var state = document.getElementById('signInButton').innerHTML;
+        if (state === "ログアウト") {
+            document.getElementById("signInButton").innerHTML = "ログイン";
+            auth.signOut();
+            showSignedOut();
+        } else {
+            auth.getSession();
+        }
+    }
+
+    // Operations when signed in.
+    function showSignedIn(session) {
+        document.getElementById("statusNotAuth").style.display = 'none';
+        document.getElementById("statusAuth").style.display = 'block';
+        document.getElementById("signInButton").innerHTML = "ログアウト";
+        if (session) {
+            var idToken = session.getIdToken().getJwtToken();
+            if (idToken) {
+                var payload = idToken.split('.')[1];
+                var formatted = JSON.stringify(atob(payload), null, 4);
+                document.getElementById('idtoken').innerHTML = formatted;
+            }
+            var accToken = session.getAccessToken().getJwtToken();
+            if (accToken) {
+                var payload = accToken.split('.')[1];
+                var formatted = JSON.stringify(atob(payload), null, 4);
+                document.getElementById('acctoken').innerHTML = formatted;
+            }
+            var refToken = session.getRefreshToken().getToken();
+            if (refToken) {
+                document.getElementById('reftoken').innerHTML = refToken.substring(1, 20);
+            }
+        }
+        openTab("userdetails");
+    }
+
+    // ログアウト時の処理
+    function showSignedOut() {
+        document.getElementById("statusNotAuth").style.display = 'block';
+        document.getElementById("statusAuth").style.display = 'none';
+        document.getElementById('idtoken').innerHTML = " ... ";
+        document.getElementById('acctoken').innerHTML = " ... ";
+        document.getElementById('reftoken').innerHTML = " ... ";
+        closeTab("userdetails");
+    }
+
+    // Initialize a cognito auth object.
+    function initCognitoSDK() {
+        var authData = {
+            ClientId : 'gcc5h6949afcflhtgo9vdaa73', // Your client id here
+            AppWebDomain : 'ds-alexa.auth.ap-northeast-1.amazoncognito.com',
+            TokenScopesArray : ['profile', 'email', 'openid', 'aws.cognito.signin.user.admin', 'phone'],
+            RedirectUriSignIn : 'http://localhost/amazon-cognito-auth-js/sample/index2.html',
+            RedirectUriSignOut : 'http://localhost/amazon-cognito-auth-js/sample/index2.html?signout=1',
+            //IdentityProvider : 'ap-northeast-1:f15f010c-6e31-4d16-84df-c41cbaf90ea8',
+            UserPoolId : 'ap-northeast-1_O1G9elThK'
+        };
+        var auth = new AWSCognito.CognitoIdentityServiceProvider.CognitoAuth(authData);
+        auth.userhandler = {
+            onSuccess:  function(result) {
+//                alert("Sign in success");
+                showSignedIn(result);
+            },
+            onFailure: function(err) {
+                alert("Error!" + err);
+            }
+        };
+        // The default response_type is "token", uncomment the next line will make it be "code".
+        auth.useCodeGrantFlow();
+        return auth;
+    }
+    </script>
+</body>
+</html>
